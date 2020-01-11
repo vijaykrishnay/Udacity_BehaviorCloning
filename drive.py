@@ -11,6 +11,7 @@ import eventlet.wsgi
 from PIL import Image
 from flask import Flask
 from io import BytesIO
+import cv2
 
 from keras.models import load_model
 import h5py
@@ -44,7 +45,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 15.
 controller.set_desired(set_speed)
 
 
@@ -61,11 +62,14 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
+        image_array = cv2.cvtColor(image_array,cv2.COLOR_RGB2BGR)
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        #steering_angle = 0.05*int(steering_angle*20)
+		#steering_angle, throttle = model.predict(image_array[None, :, :, :], batch_size=1)[0]
 
         throttle = controller.update(float(speed))
 
-        print(steering_angle, throttle)
+        #print(steering_angle, throttle)
         send_control(steering_angle, throttle)
 
         # save frame
@@ -118,9 +122,7 @@ if __name__ == '__main__':
     if model_version != keras_version:
         print('You are using Keras version ', keras_version,
               ', but the model was built using ', model_version)
-
     model = load_model(args.model)
-
     if args.image_folder != '':
         print("Creating image folder at {}".format(args.image_folder))
         if not os.path.exists(args.image_folder):
