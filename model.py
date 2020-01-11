@@ -13,12 +13,15 @@ def add_imgs_steer_folder(folder, image_Data, steer_data, prob=1.,
         csv_data = f.readlines()
 
     for line in csv_data:
+        # Skip some data if prob of keeping data is specified (default is 1.0)
         if (random.uniform(0, 1) > prob):
             continue
         
+        # Update image paths from local to relative
         line_data = line.split(',')
         img_path = format_img_path(line_data[0], folder)
 
+        # Load image using CV2
         img_data_tmp = cv2.imread(img_path)
         steer_tmp = float(line_data[3])
         
@@ -65,14 +68,8 @@ image_data = []
 steer_data = []
 
 # Add required training data sets
-
-# add_imgs_steer_folder('images', image_data, steer_data, prob=0.1, add_lr=True)
-# add_imgs_steer_folder('bridge_correction', image_data, steer_data, add_lr=True, steer_filt_gr=0.0)
-# add_imgs_steer_folder('edge_cases', image_data, steer_data, add_lr=True)
-
 add_imgs_steer_folder('regular_driving', image_data, steer_data, add_lr=True)
 add_imgs_steer_folder('recovery_driving', image_data, steer_data, add_lr=True, steer_filt_gr=0.0)
-# add_imgs_steer_folder('recovery_driving_2', image_data, steer_data, add_lr=False, steer_filt_gr=0.0)
 add_imgs_steer_folder('reverse_driving', image_data, steer_data, add_lr=True)
 
 X = np.array(image_data)
